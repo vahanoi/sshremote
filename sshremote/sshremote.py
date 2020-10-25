@@ -6,6 +6,7 @@ Questions:
 '''
 import paramiko  # import SSH2 library
 import os
+import argparse
 
 class sshclient:
     '''SSH client class - '''
@@ -19,19 +20,27 @@ class sshclient:
         self.ssh_client.connect(hostname=ssh_host[0],
                         username=ssh_host[1],
                         password=ssh_host[2])
-        stdin, stdout, stderr = self.ssh_client.exec_command(self.command)
+        stdin, stdout, stderr = self.ssh_client.exec_command(ssh_host[3])
         print(stdout.read().decode().strip())
         print(stderr.read().decode().strip())
         print("Command: "+stdin.read().decode().strip())
         self.ssh_client.close()
 
 def main ():
+    '''prompt for password to open encrypted device database
+    '''
+    arguments = argparse.ArgumentParser(description='Execute commands via SSH on the devices.')
+    arguments.add_argument ("--test")
+    # arguments.add_subparsers ("help")  # for tests
+
     ssh_host = ['123.123.123.123', 'test','testtest','ls -l']
     ssh = sshclient(ssh_host)
     ssh.ssh_session(ssh_host)
+    arguments.parse_args()
+
 
 if __name__ == "__main__":
     # execute only if run as a script
     main()
 # help with the programming
-# test
+# test   
