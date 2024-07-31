@@ -14,6 +14,6 @@ def encode_password (password):
 
 
 
-def decode_password(password)
+def decode_password(password):
     test = scrypt.decrypt(spass,password,maxtime=0.5)
     print (test)

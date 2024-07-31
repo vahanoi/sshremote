@@ -2,14 +2,23 @@
 remoting via SSH
 Questions:
 - how to protect credentials cannot store them in plain?
+1 argparse for program arguments
+2 netmiko for device access
+3 txt list of devices
+4 commands to run remotely
+5 output export to file
+
 
 '''
+from netmiko import ConnectHandler
 import paramiko  # import SSH2 library
 import os
 import argparse
 
 class sshclient:
-    '''SSH client class - '''
+    """SSH client class - 
+    ssh_host 
+    """
     def __init__(self,host):  # ssh_host - list: hostname/IP, username, password, command/commands
         self.ssh_client = host
 
@@ -32,6 +41,7 @@ def main ():
     arguments = argparse.ArgumentParser(description='Execute commands via SSH on the devices.')
     arguments.add_argument ("--test")
     # arguments.add_subparsers ("help")  # for tests
+    # create
 
     ssh_host = ['123.123.123.123', 'test','testtest','ls -l']
     ssh = sshclient(ssh_host)
