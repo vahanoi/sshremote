@@ -1,0 +1,4 @@
+# device_type IP_address
+cisco_ios 192.168.20.210
+cisco_ios 192.168.20.211
+

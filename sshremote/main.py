@@ -1,39 +1,24 @@
 import os
+import sys
 from getpass import getpass
+from netmiko import ConnectHandler,exceptions
+import argparse
 
-from netmiko import ConnectHandler
+# argparser here for com
 
-file_name = "hostdata.txt"
+file_name = "hostdata.txt" # can be specified in start path
 script_dir = os.path.dirname(os.path.abspath(__file__))
 file_path = os.path.join(script_dir, file_name)
 
+#
+# startup parser for filename, command file, output filename
+# sshremote.py -f device_list -c commands -o output
 # Open file/s with details for devices
 # read list of IPs from file with ios type
+# identify device type: cisco_ios, cisco_xe, cisco_nxos....
+# analise data
+#
 
-
-
-# # password prompt
-# passwrd = None
-# while not passwrd:
-#     passwrd = getpass('Password: ')
-#     tmp_passwrd = getpass('Repeat password: ')
-#     if passwrd != tmp_passwrd:
-#         passwrd = None
-
-with open(file_path) as file:
-    for line in file:
-        if not line.startswith('#'):
-            device = line.split()
-            print(device)
-            router = {"device_type": device[0],
-                      "host": device[1]}
-            print(router)
-
-# handle connection exceptions
-# output type (console, textfile, log entry generate)
-# what command has to run
-
-# implement user/password hide method - lib keyring?
 
 # cisco1 = {
 #     "device_type": "cisco_ios",
@@ -42,18 +27,58 @@ with open(file_path) as file:
 #     "password": password,
 # }
 
+pass1=getpass(prompt="Password: ")
+#secret=getpass(prompt="Enter Enable secret: ")
 
-net = ConnectHandler(device_type="linux",
-                     host="194.146.24.53",
-                     username="root",
-                     password=passwrd)
-#                     passwrd="oS24YZvfCpCu5anYpwuQ")
+#
+# router file access - for list of routers
+#
 
-output = net.send_command('ls -al')
-print(output)
-status = net.is_alive()
-print(status)
-net.disconnect()
+try:
+    with open(file_path) as file:
+        for line in file: # for each line in the file - main loop
+            if not (line.startswith('#') or line=="\n"):   # if line not starting from comment or empty                               
+                device = line.split()
+                router = {"device_type": device[0],
+                        "host": device[1]}
+                print(router)
+                device_data = {
+                                "device_type" : device[0],
+                                "host" : device[1],
+                                "username" : "marcin", # username 
+                                "password" : pass1,
+                                "global_delay_factor": 2
+                                }
+# Connect to the device                 
+                try:
+                    device = ConnectHandler (**device_data)
+                    if not device.find_prompt().endswith('#'):      # verify if in Enable mode
+                        secret=getpass(prompt="Enable password: ")  # if not ask for pass
+                        device.enable()                             # execute enable
+                    device.clear_buffer
+#                    print(isEnable)
+#                    device.enable()
+# execute command on device
+                    output = device.send_command('show runn | i username admin|username Admin|username ADMIN')
+                    print("=========== "+device_data["host"]+" ===========\n\n")
+                    print(output)
+                    device.disconnect()
+                except exceptions.NetmikoTimeoutException:
+                    print("Timeout connecting to ",device_data["host"])
+                except exceptions.NetmikoAuthenticationException:
+                    print("Authentication Error connecting to ",device_data["host"])
+                except exceptions.ConnectionException:
+                    print("Cant connect to ",device_data["host"])
+# summary at the end 
+except OSError:
+    print ("Could not find a file ", file_path), 
+    sys.exit (1)
+
+# handle connection exceptions
+# output type (console, textfile, log entry generate)
+# what command has to run
+
+# implement user/password hide method - lib keyring?
 
 '''
  def main ():
